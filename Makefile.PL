@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+use 5.009_000;
 
 WriteMakefile(
     NAME          => 'overload::eval',
