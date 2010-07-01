@@ -1,6 +1,8 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#define NEED_sv_2pv_flags
+#include "ppport.h"
 
 int init_done = 0;
 int global = 0;
@@ -43,7 +45,7 @@ PP(pp_evil_eval) {
     XPUSHs(sv);
     PUTBACK;
 
-    count = call_sv( aTHX_ hook, GIMME_V );
+    count = call_sv( hook, GIMME_V );
     SPAGAIN;
     SP -= count;
     ax = (SP - PL_stack_base) + 1;
