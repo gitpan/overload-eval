@@ -5,6 +5,8 @@ use 5.009_004;
 use feature ':5.10';
 use XSLoader;
 
+our $GLOBAL = 0;
+
 sub import {
     my ( undef, $callback ) = @_;
 
@@ -39,10 +41,16 @@ sub _print_eval {
     return eval "@_";
 }
 
-BEGIN {
-    our $VERSION = '0.08';
-    XSLoader::load( 'overload::eval', $VERSION );
+sub _global {
+    $GLOBAL = 1;
 }
+
+our $init_done;
+sub _install_eval; # Provided by eval.xs
+
+our $VERSION = '0.09';
+XSLoader::load( 'overload::eval', $VERSION );
+_install_eval();
 
 q[With great powers come laser eyebeams.];
 

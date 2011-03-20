@@ -1,16 +1,51 @@
+
 use strict;
 use warnings;
-use ExtUtils::MakeMaker;
-use 5.009_004;
 
-WriteMakefile(
-    NAME          => 'overload::eval',
-    AUTHOR        => 'Joshua ben Jore <jjore@cpan.org>',
-    VERSION_FROM  => 'lib/overload/eval.pm',
-    ABSTRACT_FROM => 'lib/overload/eval.pm',
-    PREREQ_PM     => { 'Test::More' => 0 },
-    EXE_FILES     => ['bin/uneval'],
-    LICENSE       => 'perl',
-    dist          => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean => { FILES => 'overload-eval-*' },
+BEGIN { require 5.9.4; }
+
+use ExtUtils::MakeMaker 6.31;
+
+
+
+my %WriteMakefileArgs = (
+  'ABSTRACT' => 'Hooks the native string eval() function',
+  'AUTHOR' => 'Josh Jore <jjore@cpan.org>',
+  'BUILD_REQUIRES' => {},
+  'CONFIGURE_REQUIRES' => {
+    'ExtUtils::MakeMaker' => '6.31'
+  },
+  'DISTNAME' => 'overload-eval',
+  'EXE_FILES' => [
+    'bin/uneval'
+  ],
+  'LICENSE' => 'perl',
+  'NAME' => 'overload::eval',
+  'PREREQ_PM' => {},
+  'VERSION' => '0.09',
+  'test' => {
+    'TESTS' => 't/*.t'
+  }
 );
+
+
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
+}
+
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+
+WriteMakefile(%WriteMakefileArgs);
+
+
+

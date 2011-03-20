@@ -4,25 +4,25 @@
 #define NEED_sv_2pv_flags
 #include "ppport.h"
 
-int init_done = 0;
-int global = 0;
-
-#if 0
-#define EVIL_EVAL_DEBUG(x) x
-#else
-#define EVIL_EVAL_DEBUG(x)
-#endif
+int is_global() {
+    return SvTRUE(get_sv("overload::eval::GLOBAL", 1));
+}
 
 OP* (*real_pp_eval)(pTHX);
-PP(pp_evil_eval) { 
+PP(pp_overload_eval) {
     dSP; dTARG;
     SV* hook;
     SV* sv;
     HV* saved_hh = NULL;
     I32 count, c, ax;
 
+#if (PERL_VERSION >= 13) && (PERL_SUBVERSION >= 7)
+    hook = cophh_fetch_pvn(PL_curcop->cop_hints_hash, "overload::eval", 14, 0, 0);
+#else
     hook = Perl_refcounted_he_fetch( aTHX_ PL_curcop->cop_hints_hash, Nullsv, "overload::eval", 14 /* strlen */, 0, 0);
-    if ( !( global || SvPOK( hook ) ) ) {
+#endif
+
+    if ( !( is_global() || SvPOK( hook ) ) ) {
         return real_pp_eval(aTHX);
     }
 
@@ -64,18 +64,13 @@ PP(pp_evil_eval) {
     RETURN;
 }
 
-MODULE = overload::eval	PACKAGE = overload::eval PREFIX = evil_eval_
+MODULE = overload::eval	PACKAGE = overload::eval PREFIX = overload_eval_
 
 PROTOTYPES: ENABLE
 
-BOOT:
-if ( ! init_done++  ) {
-    /* Is this a race in threaded perl? */
-    real_pp_eval = PL_ppaddr[OP_ENTEREVAL];
-    PL_ppaddr[OP_ENTEREVAL] = Perl_pp_evil_eval;
-}
-
 void
-evil_eval__global()
+_install_eval()
     CODE:
-        global = 1;
+        /* Is this a race in threaded perl? */
+        real_pp_eval = PL_ppaddr[OP_ENTEREVAL];
+        PL_ppaddr[OP_ENTEREVAL] = Perl_pp_overload_eval;
