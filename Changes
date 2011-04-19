@@ -34,3 +34,7 @@ Revision history for overload::ref
         - The op hook installer is callable as a regular function
         - Remove dead code
         - Build with Dist::Zilla
+
+0.10    Apr 18, 2011
+        - Fix decl for v5.14.0..v5.14.6
+
